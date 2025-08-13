@@ -1,13 +1,26 @@
-//import "./global.css";
-// App.js
 import React from "react";
+import { SafeAreaView, StyleSheet } from "react-native";
 import { LocationProvider } from "./context/LocationContext";
+import AddressInput from "./components/AddressInput";
 import AddressList from "./components/AddressList";
+import MapViewScreen from "./components/MapViewScreen";
 
-export default function App() {
+const App = () => {
   return (
     <LocationProvider>
-      <AddressList />
+      <SafeAreaView style={styles.container}>
+        <AddressInput />
+        <AddressList />
+        <MapViewScreen />
+      </SafeAreaView>
     </LocationProvider>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
+
+export default App;

@@ -1,32 +1,50 @@
-import React from "react";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import { GOOGLE_API_KEY } from "../config/config";
+import React, { useState, useContext } from "react";
+import { View, TextInput, Button, StyleSheet } from "react-native";
+import { LocationContext } from "../context/LocationContext";
 
-export default function AddressInput({ onAdd }) {
+const AddressInput = () => {
+  const [name, setName] = useState("");
+  const [details, setDetails] = useState("");
+  const { addAddress } = useContext(LocationContext);
+
+  const handleAdd = () => {
+    if (name && details) {
+      addAddress(name, details);
+      setName("");
+      setDetails("");
+    }
+  };
+
   return (
-    <GooglePlacesAutocomplete
-      placeholder="Adres ekle"
-      onPress={(data, details = null) => {
-        const { lat, lng } = details.geometry.location;
-        onAdd({
-          name: data.description,
-          lat,
-          lng,
-        });
-      }}
-      fetchDetails
-      query={{
-        key: GOOGLE_API_KEY,
-        language: "tr",
-      }}
-      styles={{
-        textInput: {
-          height: 40,
-          borderColor: "#ccc",
-          borderWidth: 1,
-          paddingHorizontal: 10,
-        },
-      }}
-    />
+    <View style={styles.container}>
+      <TextInput
+        placeholder="Adres adı"
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Adres detayları"
+        value={details}
+        onChangeText={setDetails}
+        style={styles.input}
+      />
+      <Button title="Ekle" onPress={handleAdd} />
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 6,
+  },
+});
+
+export default AddressInput;

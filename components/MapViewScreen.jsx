@@ -1,48 +1,48 @@
-import React, { useContext, useState } from "react";
-import { View, Text } from "react-native";
+import React, { useContext } from "react";
+import { StyleSheet, Text } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { LocationContext } from "../context/LocationContext";
-import AddressInput from "./AddressInput";
-import AddressList from "./AddressList";
 
-export default function MapViewScreen() {
-  const { location } = useContext(LocationContext);
-  const [addresses, setAddresses] = useState([]);
+const MapViewScreen = () => {
+  const { location, addresses, loading } = useContext(LocationContext);
 
-  const handleAddAddress = (address) => {
-    setAddresses((prev) => [...prev, address]);
-  };
+  const safeAddresses = Array.isArray(addresses) ? addresses : [];
 
-  if (!location) return <Text>Konum alınıyor...</Text>;
+  if (loading || !location) {
+    return <Text style={styles.loading}>Harita yükleniyor...</Text>;
+  }
 
   return (
-    <View style={{ flex: 1 }}>
-      <MapView
-        style={{ flex: 1 }}
-        initialRegion={{
-          latitude: location.lat,
-          longitude: location.lng,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
+    <MapView
+      style={styles.map}
+      initialRegion={{
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }}
+    >
+      {safeAddresses.map((addr) => (
         <Marker
-          coordinate={{ latitude: location.lat, longitude: location.lng }}
-          title="Başlangıç Noktası"
+          key={addr.id}
+          coordinate={addr.coords}
+          title={addr.name}
+          description={addr.details}
         />
-        {addresses.map((addr, idx) => (
-          <Marker
-            key={idx}
-            coordinate={{ latitude: addr.lat, longitude: addr.lng }}
-            title={addr.name}
-          />
-        ))}
-      </MapView>
-
-      <View style={{ padding: 10 }}>
-        <AddressInput onAdd={handleAddAddress} />
-        <AddressList addresses={addresses} />
-      </View>
-    </View>
+      ))}
+    </MapView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  map: {
+    flex: 1,
+  },
+  loading: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+  },
+});
+
+export default MapViewScreen;

@@ -1,16 +1,16 @@
-// context/LocationContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import * as Location from "expo-location";
+import { getCoordinatesFromAddress } from "../services/LocationService";
 
 export const LocationContext = createContext();
 
 export const LocationProvider = ({ children }) => {
   const [location, setLocation] = useState(null);
-  const [addresses, setAddresses] = useState([]);
+  const [addresses, setAddresses] = useState([]); // ✅ Başlangıçta boş array
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLocationAndAddresses = async () => {
+    const fetchLocation = async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
@@ -19,16 +19,8 @@ export const LocationProvider = ({ children }) => {
           return;
         }
 
-        const loc = await Location.getCurrentPositionAsync({});
-        setLocation(loc);
-
-        // Örnek adres verisi (gerçek API yerine)
-        const dummyAddresses = [
-          { id: 1, name: "Ev", details: "Kayseri, Türkiye" },
-          { id: 2, name: "İş", details: "Organize Sanayi" },
-        ];
-
-        setAddresses(dummyAddresses);
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
       } catch (error) {
         console.error("Konum alınamadı:", error);
       } finally {
@@ -36,11 +28,27 @@ export const LocationProvider = ({ children }) => {
       }
     };
 
-    fetchLocationAndAddresses();
+    fetchLocation();
   }, []);
 
+  const addAddress = async (name, details) => {
+    const coords = await getCoordinatesFromAddress(details);
+    if (!coords) return;
+
+    const newAddress = {
+      id: Date.now(),
+      name,
+      details,
+      coords,
+    };
+
+    setAddresses((prev) => [...prev, newAddress]);
+  };
+
   return (
-    <LocationContext.Provider value={{ location, addresses, loading }}>
+    <LocationContext.Provider
+      value={{ location, addresses, loading, addAddress }}
+    >
       {children}
     </LocationContext.Provider>
   );
