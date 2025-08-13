@@ -9,13 +9,23 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "expo": "~53.0.20",
+    "expo-location": "~18.1.6",
     "expo-status-bar": "~2.2.3",
+    "nativewind": "^4.1.23",
     "react": "19.0.0",
-    "react-native": "0.79.5"
+    "react-native": "0.79.5",
+    "react-native-geolocation-service": "^5.3.1",
+    "react-native-google-places-autocomplete": "^2.5.7",
+    "react-native-maps": "1.20.1",
+    "react-native-reanimated": "~3.17.4",
+    "react-native-safe-area-context": "^5.4.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "prettier-plugin-tailwindcss": "^0.5.14",
+    "tailwindcss": "^3.4.17"
   },
   "private": true
 }
