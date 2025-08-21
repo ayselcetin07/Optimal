@@ -1,6 +1,7 @@
 // Gerekli React ve React Native bileşenlerini içe aktar
 import React, { useContext } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import AddressItem from "./AdressItem";
 
 // Konum verilerini yöneten context'i içe aktar
 import { LocationContext } from "../context/LocationContext";
@@ -29,19 +30,7 @@ const AddressList = () => {
         data={safeAddresses} // Gösterilecek adres verisi
         keyExtractor={(item) => item.id.toString()} // Her öğe için benzersiz anahtar
         renderItem={({ item }) => (
-          // Her adres öğesi için görünüm
-          <View className="py-2 border-b border-gray-300">
-            <Text className="text-base font-semibold">{item.name}</Text>
-            <Text className="text-sm text-gray-600">{item.details}</Text>
-            <TouchableOpacity
-              className="bg-red-500 w-24 h-8 rounded-xl justify-center  items-center "
-              onPress={() => removeAddress(item.id)}
-            >
-              <Text className="text-white font-semibold text-center">
-                Adresi Sil
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <AddressItem address={item} onDelete={removeAddress} />
         )}
         // Liste boşsa kullanıcıya bilgi göster
         ListEmptyComponent={
