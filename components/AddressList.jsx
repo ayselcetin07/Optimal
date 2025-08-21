@@ -1,69 +1,65 @@
+// Gerekli React ve React Native bileşenlerini içe aktar
 import React, { useContext } from "react";
-import { FlatList, Text, StyleSheet, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
+
+// Konum verilerini yöneten context'i içe aktar
 import { LocationContext } from "../context/LocationContext";
 
+// Adres listesini gösteren bileşen
 const AddressList = () => {
-  const { addresses, loading } = useContext(LocationContext);
+  // Context'ten adres verilerini ve yüklenme durumunu al
+  const { addresses, loading, removeAddress } = useContext(LocationContext);
 
+  // Adres verisinin dizi olup olmadığını kontrol et, değilse boş dizi kullan
   const safeAddresses = Array.isArray(addresses) ? addresses : [];
 
+  // Veriler yükleniyorsa kullanıcıya bilgi göster
   if (loading) {
-    return <Text style={styles.loading}>Adresler yükleniyor...</Text>;
+    return (
+      <View className="flex-1 justify-center items-center px-4">
+        <Text className="text-base text-center">Adresler yükleniyor...</Text>
+      </View>
+    );
   }
 
+  // Adres listesi yüklendiyse FlatList ile göster
   return (
-    <View style={styles.container}>
+    <View className="flex-1 p-4">
       <FlatList
-        data={safeAddresses}
-        keyExtractor={(item) => item.id.toString()}
+        data={safeAddresses} // Gösterilecek adres verisi
+        keyExtractor={(item) => item.id.toString()} // Her öğe için benzersiz anahtar
         renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.details}>{item.details}</Text>
+          // Her adres öğesi için görünüm
+          <View className="py-2 border-b border-gray-300">
+            <Text className="text-base font-semibold">{item.name}</Text>
+            <Text className="text-sm text-gray-600">{item.details}</Text>
+            <TouchableOpacity
+              className="bg-red-500 w-24 h-8 rounded-xl justify-center  items-center "
+              onPress={() => removeAddress(item.id)}
+            >
+              <Text className="text-white font-semibold text-center">
+                Adresi Sil
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
+        // Liste boşsa kullanıcıya bilgi göster
         ListEmptyComponent={
-          <Text style={styles.empty}>Henüz adres eklenmedi.</Text>
+          <Text className="text-center mt-10 text-gray-500">
+            Henüz adres eklenmedi.
+          </Text>
         }
-        contentContainerStyle={safeAddresses.length === 0 && styles.center}
+        // Liste boşsa içeriği ortalamak için stil uygula
+        contentContainerStyle={
+          safeAddresses.length === 0 && {
+            flexGrow: 1,
+            justifyContent: "center",
+          }
+        }
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  item: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  details: {
-    fontSize: 14,
-    color: "#666",
-  },
-  loading: {
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-  },
-  empty: {
-    textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
-    color: "#999",
-  },
-  center: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-});
-
+// Bileşeni dışa aktar
 export default AddressList;
