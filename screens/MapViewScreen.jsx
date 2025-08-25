@@ -1,11 +1,10 @@
-// MapViewScreen.js
-
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import { LocationContext } from "../context/LocationContext";
 import { optimizeRoute } from "../utils/optimizeRoute";
 import { calculateRouteSummary } from "../utils/calculateRouteSummary";
+import { openGoogleNavigation } from "../utils/openGoogleNavigation";
 
 const MapViewScreen = () => {
   const { location, addresses, loading } = useContext(LocationContext);
@@ -27,10 +26,12 @@ const MapViewScreen = () => {
       longitude: location.coords.longitude,
     };
 
-    const rawPoints = safeAddresses.map((addr) => ({
-      latitude: addr.coords.latitude,
-      longitude: addr.coords.longitude,
-    }));
+    const rawPoints = safeAddresses
+      .filter((addr) => addr?.coords?.latitude && addr?.coords?.longitude)
+      .map((addr) => ({
+        latitude: addr.coords.latitude,
+        longitude: addr.coords.longitude,
+      }));
 
     const optimized = optimizeRoute([...rawPoints, userLocation], {
       fixedStart: userLocation,
@@ -49,19 +50,23 @@ const MapViewScreen = () => {
     }
   }, [routePoints]);
 
+  const handleNavigation = () => {
+    openGoogleNavigation(location.coords, routePoints);
+  };
+
   if (!isReady) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.loading}>Harita yükleniyor...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Harita yükleniyor...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1 }}>
       <MapView
         ref={mapRef}
-        style={styles.map}
+        style={{ flex: 1 }}
         initialRegion={{
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -69,17 +74,12 @@ const MapViewScreen = () => {
           longitudeDelta: 0.01,
         }}
       >
-        {/* Kullanıcının konumu */}
         <Marker
-          coordinate={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          }}
+          coordinate={location.coords}
           title="Mevcut Konum"
           pinColor="green"
         />
 
-        {/* Adresler */}
         {safeAddresses.map((addr) => (
           <Marker
             key={addr.id}
@@ -89,7 +89,6 @@ const MapViewScreen = () => {
           />
         ))}
 
-        {/* Rota çizgisi */}
         {routePoints.length > 1 && (
           <Polyline
             coordinates={routePoints}
@@ -99,49 +98,43 @@ const MapViewScreen = () => {
         )}
       </MapView>
 
-      {/* Rota özeti */}
       {summary && (
-        <View style={styles.summary}>
+        <View
+          style={{
+            position: "absolute",
+            bottom: 80,
+            left: 20,
+            right: 20,
+            backgroundColor: "#fff",
+            padding: 12,
+            borderRadius: 8,
+            elevation: 3,
+          }}
+        >
           <Text>Toplam Mesafe: {summary.distanceKm} km</Text>
           <Text>Tahmini Süre: {summary.durationMin} dakika</Text>
         </View>
       )}
+
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: 20,
+          left: 20,
+          right: 20,
+          backgroundColor: "#007AFF",
+          padding: 12,
+          borderRadius: 8,
+          alignItems: "center",
+        }}
+        onPress={handleNavigation}
+      >
+        <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+          Google Navigasyon ile Aç
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  map: {
-    flex: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  loading: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  summary: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-});
 
 export default MapViewScreen;

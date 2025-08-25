@@ -1,25 +1,34 @@
 import { GOOGLE_API_KEY } from "../config/config";
 
 export async function calculateRouteSummary(route) {
-  const stats = { totalDistance: 0, totalDuration: 0 };
+  if (route.length < 2) return null;
 
-  for (let i = 0; i < route.length - 1; i++) {
-    const origin = `${route[i].latitude},${route[i].longitude}`;
-    const destination = `${route[i + 1].latitude},${route[i + 1].longitude}`;
+  const origin = `${route[0].latitude},${route[0].longitude}`;
+  const destination = `${route[route.length - 1].latitude},${route[route.length - 1].longitude}`;
+  const waypoints = route
+    .slice(1, -1)
+    .map((point) => `${point.latitude},${point.longitude}`)
+    .join("|");
 
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&key=${GOOGLE_API_KEY}`;
-    const response = await fetch(url);
-    const data = await response.json();
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&waypoints=${waypoints}&key=${GOOGLE_API_KEY}&mode=driving`;
 
-    const element = data.rows[0].elements[0];
-    if (element.status === "OK") {
-      stats.totalDistance += element.distance.value;
-      stats.totalDuration += element.duration.value;
-    }
-  }
+  const response = await fetch(url);
+  const data = await response.json();
+
+  const routeData = data.routes?.[0];
+  if (!routeData) return null;
+
+  const totalDistance = routeData.legs.reduce(
+    (sum, leg) => sum + leg.distance.value,
+    0
+  );
+  const totalDuration = routeData.legs.reduce(
+    (sum, leg) => sum + leg.duration.value,
+    0
+  );
 
   return {
-    distanceKm: (stats.totalDistance / 1000).toFixed(2),
-    durationMin: Math.ceil(stats.totalDuration / 60),
+    distanceKm: (totalDistance / 1000).toFixed(2),
+    durationMin: Math.ceil(totalDuration / 60),
   };
 }
